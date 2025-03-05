@@ -2,7 +2,32 @@
 
 A simple, modern web interface for managing and deploying llama.cpp language models with ease.
 
-![Llama.cpp Web UI Screenshot](https://api.placeholder.com/400/300)
+## 🖥️ Screenshots
+
+![controller](https://github.com/user-attachments/assets/495120f9-c51a-4545-838a-0aeb4e6af1ec)
+
+
+## 💪 Join me! 
+- **👉 Subscribe to my YouTube Channel [GetCyber - YouTube](https://youtube.com/getCyber)**
+- **👉 Checkout some more awesome tools at [GetCyber](https://getcyber.me/tools)**
+- **👉 Discord Server [GetCyber - Discord](https://discord.gg/YUf3VpDeNH)**
+
+> 
+> ### 💝 Support My Work
+> 
+> [![Sponsor my work](https://img.shields.io/badge/Sponsor_my_work-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/Dan-Duran)
+>
+> <details>
+> <summary>Why sponsor?</summary>
+> Your sponsorship helps keep my open-source projects alive! From interactive learning tools to security guides, every contribution makes a difference in keeping these resources free and accessible to everyone.
+>
+> - 🔨 Maintain and improve existing tools
+> - 📚 Create new educational content
+> - 🌐 Keep resources free and accessible
+> - 💡 Dedicate more time to community projects
+> </details>
+> 
+
 
 ## 🌟 Features
 
