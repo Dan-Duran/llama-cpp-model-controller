@@ -6,125 +6,161 @@
     <title>Llama Model Controller</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center h-screen">
+<body class="bg-gray-900 text-white min-h-screen p-4">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center">Llama Model Controller</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Model Selection Column -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Model Selection</h2>
+                <p id="status" class="mb-2 text-sm">Checking status...</p>
+                <p id="message" class="mb-4 text-yellow-400 text-sm"></p>
+                
+                <form id="modelForm">
+                    <label class="block text-left mb-1">Select Model</label>
+                    <select id="model" name="model" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                        {% for model in models %}
+                        <option value="{{ model }}">{{ model }}</option>
+                        {% endfor %}
+                    </select>
 
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-96">
-        <h1 class="text-2xl font-bold mb-4">Llama Model Server</h1>
-        <p id="status" class="mb-4 text-sm">Checking status...</p>
-        <p id="message" class="mb-4 text-yellow-400 text-sm"></p>
+                    <div class="flex justify-between space-x-2">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-2 flex-1">
+                            Start Model
+                        </button>
+                        <button id="stop" type="button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded mb-2 flex-1">
+                            Stop Model
+                        </button>
+                    </div>
+                </form>
+            </div>
 
-        <form id="modelForm">
-            <label class="block text-left mb-1">Select Model</label>
-
-            <select id="model" name="model" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-                    {% for model in models %}
-                <option value="{{ model }}">{{ model }}</option>
-                    {% endfor %}
-            </select>
-
-
-            <label class="block text-left mb-1">Threads</label>
-            <input type="number" id="threads" value="16" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-
-            <label class="block text-left mb-1">Port</label>
-            <input type="number" id="port" value="8080" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-
-            <label class="block text-left mb-1">Host</label>
-            <input type="text" id="host" value="0.0.0.0" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-
-            <label class="block text-left mb-1">Number of GPU Layers</label>
-            <input type="number" id="ngl" value="99" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-
-            <label class="block text-left mb-1">Context Size</label>
-            <input type="number" id="c" value="32000" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-
-            <label class="block text-left mb-1">Scheduling Mode</label>
-            <input type="text" id="sm" value="row" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-
-            <label class="block text-left mb-1">Number of Parallel Sequences</label>
-            <input type="number" id="np" value="1" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
-
-            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded mb-2 w-full">
-                Start Model
-            </button>
-        </form>
-
-        <button id="stop" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded w-full">
-            Stop Model
-        </button>
-    </div>
-
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-96 mt-4">
-    <h2 class="text-lg font-bold mb-2">GPU Usage</h2>
-    <div id="gpu-stats" class="text-sm text-gray-300">Loading...</div>
-    </div>
-
-<script>
-    async function updateStatus() {
-        let response = await fetch("/status");
-        let data = await response.json();
-        document.getElementById("status").innerText = data.running ? "Model is running." : "Model is stopped.";
-    }
-
-    async function updateGPUStats() {
-        let response = await fetch("/gpu");
-        let gpus = await response.json();
-        let gpuContainer = document.getElementById("gpu-stats");
-        gpuContainer.innerHTML = "";
-
-        if (gpus.length === 0 || gpus[0].error) {
-            gpuContainer.innerHTML = `<p class="text-red-400">Error: ${gpus[0]?.error || "No data"}</p>`;
-            return;
-        }
-
-        gpus.forEach(gpu => {
-            gpuContainer.innerHTML += `
-                <div class="p-2 border-b border-gray-600">
-                    <p><strong>${gpu.name} (GPU ${gpu.index})</strong></p>
-                    <p>Temp: ${gpu.temp} | Usage: ${gpu.usage}</p>
-                    <p>Memory: ${gpu.memory}</p>
+            <!-- Model Parameters Column -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Model Parameters</h2>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-left mb-1">Threads</label>
+                        <input type="number" id="threads" name="threads" value="16" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                    </div>
+                    <div>
+                        <label class="block text-left mb-1">GPU Layers</label>
+                        <input type="number" id="ngl" name="ngl" value="99" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                    </div>
+                    <div>
+                        <label class="block text-left mb-1">Port</label>
+                        <input type="number" id="port" name="port" value="8080" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                    </div>
+                    <div>
+                        <label class="block text-left mb-1">Host</label>
+                        <input type="text" id="host" name="host" value="0.0.0.0" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                    </div>
                 </div>
-            `;
-        });
-    }
+            </div>
 
-    document.getElementById("modelForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
+            <!-- Advanced Settings Column -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Advanced Settings</h2>
+                
+                <div>
+                    <label class="block text-left mb-1">Context Size</label>
+                    <input type="number" id="c" name="c" value="32000" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                </div>
+                
+                <div>
+                    <label class="block text-left mb-1">Scheduling Mode</label>
+                    <input type="text" id="sm" name="sm" value="row" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                </div>
+                
+                <div>
+                    <label class="block text-left mb-1">Number of Parallel Sequences</label>
+                    <input type="number" id="np" name="np" value="1" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                </div>
+            </div>
+        </div>
 
-        let formData = new FormData(event.target);
-        let selectedModel = document.getElementById("model").value.trim();
+        <!-- GPU Stats Section - Full Width -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg mt-4">
+            <h2 class="text-xl font-bold mb-2">GPU Usage</h2>
+            <div id="gpu-stats" class="text-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                Loading...
+            </div>
+        </div>
+    </div>
 
-        if (!selectedModel) {
-            document.getElementById("message").innerText = "Error: Please select a model.";
-            return;
+    <script>
+        async function updateStatus() {
+            let response = await fetch("/status");
+            let data = await response.json();
+            document.getElementById("status").innerText = data.running ? "Model is running." : "Model is stopped.";
         }
 
-        formData.set("model", selectedModel);  // ✅ Ensure model is set
+        async function updateGPUStats() {
+            let response = await fetch("/gpu");
+            let gpus = await response.json();
+            let gpuContainer = document.getElementById("gpu-stats");
+            gpuContainer.innerHTML = "";
 
-        let response = await fetch("/start", {
-            method: "POST",
-            body: formData
+            if (gpus.length === 0 || gpus[0].error) {
+                gpuContainer.innerHTML = `<p class="text-red-400">Error: ${gpus[0]?.error || "No data"}</p>`;
+                return;
+            }
+
+            gpus.forEach(gpu => {
+                gpuContainer.innerHTML += `
+                    <div class="p-3 bg-gray-700 rounded">
+                        <p><strong>${gpu.name} (GPU ${gpu.index})</strong></p>
+                        <p>Temp: ${gpu.temp} | Usage: ${gpu.usage}</p>
+                        <p>Memory: ${gpu.memory}</p>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById("modelForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            // Create a FormData object and add all input fields from the page
+            let formData = new FormData();
+            formData.append("model", document.getElementById("model").value.trim());
+            formData.append("threads", document.getElementById("threads").value);
+            formData.append("port", document.getElementById("port").value);
+            formData.append("host", document.getElementById("host").value);
+            formData.append("ngl", document.getElementById("ngl").value);
+            formData.append("c", document.getElementById("c").value);
+            formData.append("sm", document.getElementById("sm").value);
+            formData.append("np", document.getElementById("np").value);
+
+            let selectedModel = document.getElementById("model").value.trim();
+            if (!selectedModel) {
+                document.getElementById("message").innerText = "Error: Please select a model.";
+                return;
+            }
+
+            let response = await fetch("/start", {
+                method: "POST",
+                body: formData
+            });
+
+            let result = await response.json();
+            document.getElementById("message").innerText = result.status;
+            updateStatus();
+            updateGPUStats();  // Refresh GPU stats when model starts
         });
 
-        let result = await response.json();
-        document.getElementById("message").innerText = result.status;
+        document.getElementById("stop").addEventListener("click", async () => {
+            let response = await fetch("/stop", { method: "POST" });
+            let result = await response.json();
+            document.getElementById("message").innerText = result.status;
+            updateStatus();
+        });
+
         updateStatus();
-        updateGPUStats();  // Refresh GPU stats when model starts
-    });
-
-    document.getElementById("stop").addEventListener("click", async () => {
-        let response = await fetch("/stop", { method: "POST" });
-        let result = await response.json();
-        document.getElementById("message").innerText = result.status;
-        updateStatus();
-    });
-
-    updateStatus();
-    updateGPUStats();
-    setInterval(updateStatus, 5000);
-    setInterval(updateGPUStats, 5000);
-</script>
-
-
+        updateGPUStats();
+        setInterval(updateStatus, 5000);
+        setInterval(updateGPUStats, 5000);
+    </script>
 </body>
 </html>
