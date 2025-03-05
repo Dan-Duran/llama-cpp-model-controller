@@ -2,7 +2,7 @@
 
 A simple, modern web interface for managing and deploying llama.cpp language models with ease.
 
-## 🖥️ Screenshots
+## 🖥️ Screenshot
 
 ![controller](https://github.com/user-attachments/assets/495120f9-c51a-4545-838a-0aeb4e6af1ec)
 
