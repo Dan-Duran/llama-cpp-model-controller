@@ -43,19 +43,19 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block text-left mb-1">Threads</label>
-                        <input type="number" id="threads" name="threads" value="16" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                        <input type="number" id="threads" name="threads" form="modelForm" value="16" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
                     </div>
                     <div>
                         <label class="block text-left mb-1">GPU Layers</label>
-                        <input type="number" id="ngl" name="ngl" value="99" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                        <input type="number" id="ngl" name="ngl" form="modelForm" value="99" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
                     </div>
                     <div>
                         <label class="block text-left mb-1">Port</label>
-                        <input type="number" id="port" name="port" value="8080" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                        <input type="number" id="port" name="port" form="modelForm" value="8080" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
                     </div>
                     <div>
                         <label class="block text-left mb-1">Host</label>
-                        <input type="text" id="host" name="host" value="0.0.0.0" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                        <input type="text" id="host" name="host" form="modelForm" value="0.0.0.0" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
                     </div>
                 </div>
             </div>
@@ -66,17 +66,21 @@
                 
                 <div>
                     <label class="block text-left mb-1">Context Size</label>
-                    <input type="number" id="c" name="c" value="32000" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                    <input type="number" id="c" name="c" form="modelForm" value="32000" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
                 </div>
                 
                 <div>
-                    <label class="block text-left mb-1">Scheduling Mode</label>
-                    <input type="text" id="sm" name="sm" value="row" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                    <label class="block text-left mb-1">Split Mode (-sm)</label>
+                    <select id="sm" name="sm" form="modelForm" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                        <option value="layer">layer (default)</option>
+                        <option value="none">none (single GPU)</option>
+                        <option value="row">row</option>
+                    </select>
                 </div>
                 
                 <div>
                     <label class="block text-left mb-1">Number of Parallel Sequences</label>
-                    <input type="number" id="np" name="np" value="1" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
+                    <input type="number" id="np" name="np" form="modelForm" value="1" class="w-full bg-gray-700 text-white p-2 rounded mb-3">
                 </div>
             </div>
         </div>
@@ -121,22 +125,14 @@
 
         document.getElementById("modelForm").addEventListener("submit", async (event) => {
             event.preventDefault();
-
-            // Create a FormData object and add all input fields from the page
-            let formData = new FormData();
-            formData.append("model", document.getElementById("model").value.trim());
-            formData.append("threads", document.getElementById("threads").value);
-            formData.append("port", document.getElementById("port").value);
-            formData.append("host", document.getElementById("host").value);
-            formData.append("ngl", document.getElementById("ngl").value);
-            formData.append("c", document.getElementById("c").value);
-            formData.append("sm", document.getElementById("sm").value);
-            formData.append("np", document.getElementById("np").value);
-
-            let selectedModel = document.getElementById("model").value.trim();
-            if (!selectedModel) {
-                document.getElementById("message").innerText = "Error: Please select a model.";
-                return;
+            
+            // Use FormData to collect all form elements
+            const formData = new FormData(document.getElementById("modelForm"));
+            
+            // Log what we're sending (for debugging)
+            console.log("Sending form data:");
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
             }
 
             let response = await fetch("/start", {

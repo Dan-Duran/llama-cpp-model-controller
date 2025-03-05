@@ -2,7 +2,13 @@ import os
 import subprocess
 import signal
 import atexit
+import logging
 from flask import Flask, render_template, request, jsonify
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG, 
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 model_process = None
@@ -29,6 +35,7 @@ def get_gpu_stats():
             })
         return gpus
     except Exception as e:
+        logger.error(f"Error getting GPU stats: {e}")
         return [{"error": str(e)}]
 
 @app.route("/")
@@ -47,19 +54,35 @@ def start_server():
         return jsonify({"status": "Model is already running!", "success": False})
 
     try:
+        # Debug all form data
+        logger.debug("Form data received:")
+        for key, value in request.form.items():
+            logger.debug(f"  {key}: {value}")
+        
+        # Get model name
         model = request.form.get("model")
-        print(f"DEBUG: Received model - {model}")  # 👈 Add this to see what is received
-
         if not model:
+            logger.error("No model selected!")
             return jsonify({"status": "No model selected!", "success": False})
-
+        
+        # Get other parameters with defaults
         threads = request.form.get("threads", "16")
         port = request.form.get("port", "8080")
         host = request.form.get("host", "0.0.0.0")
         ngl = request.form.get("ngl", "99")
         c = request.form.get("c", "32000")
-        sm = request.form.get("sm", "row")
+        sm = request.form.get("sm", "layer")
         np = request.form.get("np", "1")
+        
+        # Log the actual values being used
+        logger.debug(f"Using model: {model}")
+        logger.debug(f"Threads: {threads}")
+        logger.debug(f"Port: {port}")
+        logger.debug(f"Host: {host}")
+        logger.debug(f"GPU Layers (ngl): {ngl}")
+        logger.debug(f"Context size (c): {c}")
+        logger.debug(f"Split mode (sm): {sm}")
+        logger.debug(f"Parallel sequences (np): {np}")
 
         env = os.environ.copy()
         env["CUDA_VISIBLE_DEVICES"] = "0,1"
@@ -69,35 +92,52 @@ def start_server():
         -m {MODEL_DIR}/{model} --threads {threads} --port {port} --host {host} \
         -ngl {ngl} -c {c} -sm {sm} -np {np}
         """
+        
+        # Log the final command being executed
+        logger.debug(f"Executing command: {command}")
 
         model_process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, preexec_fn=os.setsid, env=env)
-
+        
+        # Capture any immediate output from the process
+        stdout_data, stderr_data = model_process.communicate(timeout=0.5)
+        if stdout_data:
+            logger.debug(f"Process stdout: {stdout_data.decode('utf-8')}")
+        if stderr_data:
+            logger.debug(f"Process stderr: {stderr_data.decode('utf-8')}")
+        
         return jsonify({"status": f"Model '{model}' started on {host}:{port}", "success": True})
 
+    except subprocess.TimeoutExpired:
+        # This is actually expected - the process should keep running
+        logger.debug("Process started successfully (timeout expected)")
+        return jsonify({"status": f"Model '{model}' started on {host}:{port}", "success": True})
     except Exception as e:
+        logger.exception(f"Error starting model: {e}")
         return jsonify({"status": f"Error: {str(e)}", "success": False})
 
 @app.route("/stop", methods=["POST"])
 def stop_server():
     global model_process
 
+    logger.debug("Stopping model server...")
     if model_process:
         os.killpg(os.getpgid(model_process.pid), signal.SIGTERM)
         model_process = None
+        logger.debug("Model process terminated")
 
-    # 🛑 Forcefully Clear Llama-Server Cache (Modify This for Your Setup)
+    # Clear Llama-Server Cache
     try:
         subprocess.run(["rm", "-rf", "/home/dan/.cache/llama"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print("Llama cache cleared.")
+        logger.debug("Llama cache cleared")
     except Exception as e:
+        logger.error(f"Error clearing cache: {e}")
         return jsonify({"status": f"Error clearing cache: {str(e)}", "success": False})
 
     # Double-check: Kill any remaining `llama-server` processes
     subprocess.run(["pkill", "-f", "llama-server"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    logger.debug("Killed any remaining llama-server processes")
 
     return jsonify({"status": "Model server fully stopped and cache cleared!", "success": True})
-
-
 
 @app.route("/status")
 def status():
@@ -106,21 +146,22 @@ def status():
 # Ensure the model process is killed when Flask exits
 def cleanup():
     global model_process
-    print("Cleaning up before exit...")
+    logger.info("Cleaning up before exit...")
 
     if model_process:
         os.killpg(os.getpgid(model_process.pid), signal.SIGTERM)
-        print("Model process terminated.")
+        logger.info("Model process terminated")
 
-    # 🛑 Clear Llama-Server Cache on Exit
+    # Clear Llama-Server Cache on Exit
     subprocess.run(["rm", "-rf", "/home/dan/.cache/llama"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print("Llama cache cleared.")
+    logger.info("Llama cache cleared")
 
     # Kill any remaining `llama-server` processes
     subprocess.run(["pkill", "-f", "llama-server"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+    logger.info("Killed any remaining llama-server processes")
 
 atexit.register(cleanup)
 
 if __name__ == "__main__":
+    logger.info("Starting Llama Model Controller server...")
     app.run(host="0.0.0.0", port=5000, debug=True)
