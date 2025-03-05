@@ -15,9 +15,19 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+#################################
+#### Configuration variables ####
+#################################
+
+# update these to match your environment
+HOME_DIR = os.path.expanduser("~")  # Dynamically get user's home directory
+PROJECT_DIR = os.path.join(HOME_DIR, "llama")  # Project directory
+MODEL_DIR = os.path.join(PROJECT_DIR, "models")  # Model directory
+LLAMA_CPP_PATH = os.path.join(PROJECT_DIR, "llama.cpp-b4823/build/bin/llama-server")  # Path to llama-server executable
+CACHE_DIR = os.path.join(HOME_DIR, ".cache/llama")  # Llama cache directory
+
 app = Flask(__name__)
 model_process = None
-MODEL_DIR = "/home/dan/llama/models"
 
 # Buffer to store server logs
 log_buffer = deque(maxlen=1000)  # Store up to 1000 log lines
@@ -26,6 +36,9 @@ last_log_id = 0
 
 def get_models():
     """Retrieve all available models from the models directory"""
+    if not os.path.exists(MODEL_DIR):
+        logger.warning(f"Model directory {MODEL_DIR} does not exist")
+        return []
     return [f for f in os.listdir(MODEL_DIR) if f.endswith(".gguf")]
 
 def get_gpu_stats():
@@ -131,7 +144,7 @@ def start_server():
         env["CUDA_VISIBLE_DEVICES"] = "0,1"
 
         command = f"""
-        CUDA_VISIBLE_DEVICES=0,1 /home/dan/llama/llama.cpp-b4823/build/bin/llama-server \
+        CUDA_VISIBLE_DEVICES=0,1 {LLAMA_CPP_PATH} \
         -m {MODEL_DIR}/{model} --threads {threads} --port {port} --host {host} \
         -ngl {ngl} -c {c} -sm {sm} -np {np}
         """
@@ -139,9 +152,9 @@ def start_server():
         # Log the final command being executed
         logger.debug(f"Executing command: {command}")
 
-        # Compare with known working command
-        working_command = """CUDA_VISIBLE_DEVICES=0,1 /home/dan/llama/llama.cpp-b4823/build/bin/llama-server \
-        -m /home/dan/llama/models/Qwen2.5-Coder-32B-Instruct-Q8_0.gguf --threads 16 --port 8080 --host 0.0.0.0 \
+        # Compare with known working command (for debugging)
+        working_command = f"""CUDA_VISIBLE_DEVICES=0,1 {LLAMA_CPP_PATH} \
+        -m {MODEL_DIR}/Qwen2.5-Coder-32B-Instruct-Q8_0.gguf --threads 16 --port 8080 --host 0.0.0.0 \
         -ngl 99 -c 32000 -sm row -np 1"""
 
         logger.debug("Command comparison:")
@@ -220,7 +233,7 @@ def stop_server():
 
     # Clear Llama-Server Cache
     try:
-        subprocess.run(["rm", "-rf", "/home/dan/.cache/llama"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(["rm", "-rf", CACHE_DIR], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         logger.debug("Llama cache cleared")
     except Exception as e:
         logger.error(f"Error clearing cache: {e}")
@@ -246,7 +259,7 @@ def cleanup():
         logger.info("Model process terminated")
 
     # Clear Llama-Server Cache on Exit
-    subprocess.run(["rm", "-rf", "/home/dan/.cache/llama"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.run(["rm", "-rf", CACHE_DIR], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     logger.info("Llama cache cleared")
 
     # Kill any remaining `llama-server` processes
@@ -257,4 +270,20 @@ atexit.register(cleanup)
 
 if __name__ == "__main__":
     logger.info("Starting Llama Model Controller server...")
+    logger.info(f"Using model directory: {MODEL_DIR}")
+    logger.info(f"Using llama.cpp server path: {LLAMA_CPP_PATH}")
+    
+    # Check if model directory exists
+    if not os.path.exists(MODEL_DIR):
+        logger.warning(f"Model directory {MODEL_DIR} does not exist. Creating it...")
+        try:
+            os.makedirs(MODEL_DIR, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Failed to create model directory: {e}")
+    
+    # Check if llama-server exists
+    if not os.path.exists(LLAMA_CPP_PATH):
+        logger.error(f"llama-server executable not found at {LLAMA_CPP_PATH}")
+        logger.error("Please compile llama.cpp or update the LLAMA_CPP_PATH variable")
+    
     app.run(host="0.0.0.0", port=5000, debug=True)
