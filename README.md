@@ -6,6 +6,15 @@ A simple, modern web interface for managing and deploying llama.cpp language mod
 
 ![controller](https://github.com/user-attachments/assets/495120f9-c51a-4545-838a-0aeb4e6af1ec)
 
+## 🌟 Features
+
+- **Simple Model Management** - Start and stop models with a clean, intuitive interface
+- **Real-time GPU Monitoring** - Track GPU temperature, memory usage and utilization
+- **Live Server Logs** - View token usage and server output in real-time with color-coded logs
+- **Customizable Parameters** - Configure threads, context size, GPU layers and more
+- **Multi-GPU Support** - Choose between layer and row split modes for optimal multi-GPU performance
+- **Responsive Design** - Works on desktop and mobile devices
+- **Per-Model Configuration** - Save and load different settings for each model
 
 ## 💪 Join me! 
 - **👉 Subscribe to my YouTube Channel [GetCyber - YouTube](https://youtube.com/getCyber)**
@@ -27,17 +36,6 @@ A simple, modern web interface for managing and deploying llama.cpp language mod
 > - 💡 Dedicate more time to community projects
 > </details>
 > 
-
-
-## 🌟 Features
-
-- **Simple Model Management** - Start and stop models with a clean, intuitive interface
-- **Real-time GPU Monitoring** - Track GPU temperature, memory usage and utilization
-- **Live Server Logs** - View token usage and server output in real-time with color-coded logs
-- **Customizable Parameters** - Configure threads, context size, GPU layers and more
-- **Multi-GPU Support** - Choose between layer and row split modes for optimal multi-GPU performance
-- **Responsive Design** - Works on desktop and mobile devices
-- **Per-Model Configuration** - Save and load different settings for each model
 
 ## 📋 Requirements
 
