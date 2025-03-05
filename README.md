@@ -1,6 +1,8 @@
 # Llama.cpp Model Controller 🦙
 
-A simple, modern web interface for managing and deploying llama.cpp language models with ease.
+The Llama.cpp Model Controller is an intuitive web interface for managing local LLM deployments powered by llama.cpp. This application streamlines the process of starting, monitoring, and stopping language models through a clean, responsive UI, eliminating the need for complex command-line operations.
+
+Key features include real-time GPU monitoring with temperature and memory usage statistics, color-coded live server logs showing token usage and model output, and customizable deployment parameters. Users can easily configure thread count, context size, and GPU allocation strategies for optimal performance on their hardware.
 
 ## 🖥️ Screenshot
 
