@@ -2,6 +2,11 @@
 
 A simple, modern web interface for managing and deploying llama.cpp language models with ease.
 
+## 🖥️ Screenshots
+
+![controller](https://github.com/user-attachments/assets/495120f9-c51a-4545-838a-0aeb4e6af1ec)
+
+
 ## 💪 Join me! 
 - **👉 Subscribe to my YouTube Channel [GetCyber - YouTube](https://youtube.com/getCyber)**
 - **👉 Checkout some more awesome tools at [GetCyber](https://getcyber.me/tools)**
@@ -23,9 +28,6 @@ A simple, modern web interface for managing and deploying llama.cpp language mod
 > </details>
 > 
 
-## 🖥️ Screenshots
-
-![controller](https://github.com/user-attachments/assets/495120f9-c51a-4545-838a-0aeb4e6af1ec)
 
 ## 🌟 Features
 
